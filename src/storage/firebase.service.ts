@@ -6,16 +6,23 @@ export class FirebaseService {
   private static initialized = false;
 
   constructor() {
-    if (!FirebaseService.initialized) {
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+
+    if (!FirebaseService.initialized && projectId && privateKey && clientEmail) {
       admin.initializeApp({
         credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          projectId,
+          privateKey: privateKey.replace(/\\n/g, '\n'),
+          clientEmail,
         }),
         storageBucket: 'virgennatividad-a5c2b.appspot.com',
       });
       FirebaseService.initialized = true;
+      console.log('✅ Firebase inicializado');
+    } else {
+      console.warn('⚠️ Firebase no inicializado: faltan variables de entorno');
     }
   }
 
@@ -23,6 +30,8 @@ export class FirebaseService {
     location: string,
     file: Express.Multer.File,
   ): Promise<string> {
+    if (!FirebaseService.initialized) return '';
+
     let uploadedUrl: string = '';
 
     const { originalname, buffer } = file;
@@ -43,6 +52,7 @@ export class FirebaseService {
     location: string,
     files: Express.Multer.File[] = [],
   ): Promise<object[]> {
+    if (!FirebaseService.initialized) return [];
     if (!Array.isArray(files)) {
       throw new Error('Files should be an array');
     }
@@ -76,6 +86,8 @@ export class FirebaseService {
   }
 
   async deleteFileFromFirebase(fileUrl: string): Promise<void> {
+    if (!FirebaseService.initialized) return;
+
     const storage = admin.storage();
     const bucket = storage.bucket();
 
@@ -101,6 +113,7 @@ export class FirebaseService {
     location: string,
     files: Express.Multer.File[] = [],
   ): Promise<object[]> {
+    if (!FirebaseService.initialized) return [];
     if (!Array.isArray(files)) {
       throw new Error('Files should be an array');
     }

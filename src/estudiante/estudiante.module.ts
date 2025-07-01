@@ -13,6 +13,7 @@ import { Estudiante, EstudianteSchema } from './schema/estudiante.schema';
 import { FirebaseService } from 'src/storage/firebase.service';
 import { Archivo, ArchivoSchema } from 'src/archivo/schema/archivo.schema';
 import { Apoderado, ApoderadoSchema } from 'src/apoderado/schema/apoderado.schema';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Module({
   imports: [
@@ -29,6 +30,6 @@ import { Apoderado, ApoderadoSchema } from 'src/apoderado/schema/apoderado.schem
     ])
   ],
   controllers: [EstudianteController],
-  providers: [EstudianteService, FirebaseService]
+  providers: [EstudianteService, FirebaseService, SupabaseService]
 })
 export class EstudianteModule {}

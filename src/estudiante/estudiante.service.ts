@@ -9,7 +9,8 @@ import { PeriodoEscolar } from 'src/periodo-escolar/schema/periodo-escolar.schem
 import { Grado } from 'src/grado/schema/grado.schema';
 import { Seccion } from 'src/seccion/schema/seccion.schema';
 import { Multimedia } from 'src/multimedia/schema/multimedia.schema';
-import { FirebaseService } from 'src/storage/firebase.service';
+// import { FirebaseService } from 'src/storage/firebase.service';
+import { SupabaseService } from 'src/storage/supabase.service';
 import { User } from 'src/user/schema/user.schema';
 import { UpdateEstadoEstudianteDto } from './dto/update-estado.dto';
 import { UpdateSeccionDto } from './dto/update-seccion.dto';
@@ -37,7 +38,8 @@ export class EstudianteService {
     private readonly userModel: Model<User>,
     @InjectModel(Apoderado.name)
     private readonly apoderadoModel: Model<Apoderado>,
-    private readonly firebaseService: FirebaseService,
+    // private readonly firebaseService: FirebaseService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   async create(createEstudianteDto: CreateEstudianteDto) {
@@ -271,7 +273,7 @@ export class EstudianteService {
         .findById(multimediaId)
         .exec();
       if (multimedia) {
-        await this.firebaseService.deleteFileFromFirebase(multimedia.url);
+        await this.supabaseService.deleteFileFromFirebase(multimedia.url);
         await this.multimediaModel.findByIdAndDelete(multimediaId);
       }
     }
@@ -408,12 +410,12 @@ export class EstudianteService {
       (estudiante.multimedia as unknown as Multimedia).url
     ) {
       const multimedia = estudiante.multimedia as unknown as Multimedia;
-      await this.firebaseService.deleteFileFromFirebase(multimedia.url);
+      await this.supabaseService.deleteFileFromFirebase(multimedia.url);
       await this.multimediaModel.deleteOne({ _id: multimedia._id }).exec();
       estudiante.multimedia = null;
     }
 
-    const imageUrl = await this.firebaseService.uploadPfpToFirebase(
+    const imageUrl = await this.supabaseService.uploadPfpToFirebase(
       'Estudiante',
       file,
     );
@@ -470,63 +472,66 @@ export class EstudianteService {
   }
 
   async updateFiles(estudiante_id: string, files: Express.Multer.File[]) {
-    if (files.length > 4) {
-      throw new BadRequestException('No se pueden subir más de 4 archivos');
-    }
-
-    const estudiante = await this.estudianteModel
-      .findById(estudiante_id)
-      .populate('archivo');
-    if (!estudiante) {
-      throw new BadRequestException('Estudiante no encontrado');
-    }
-
-    if (estudiante.archivo && estudiante.archivo.length > 0) {
-      const oldArchivo = await this.archivoModel.find({
-        _id: { $in: estudiante.archivo },
-      });
-
-      for (const archivo of oldArchivo) {
-        if (archivo.url) {
-          await this.firebaseService.deleteFileFromFirebase(archivo.url);
-        }
-      }
-
-      await this.archivoModel.deleteMany({ _id: { $in: estudiante.archivo } });
-    }
-
-    const uploadedFiles = (await this.firebaseService.uploadDocumentsToFirebase(
-      'Estudiante',
-      files,
-    )) as UploadedFile[];
-
-    const archivoEntries = await Promise.all(
-      uploadedFiles.map(async (file) => {
-        const createdArchivo = new this.archivoModel({
-          nombre: file.nombre,
-          url: file.url,
-          tamanio: file.tamanio,
-        });
-        return createdArchivo.save();
-      }),
-    );
-
-    estudiante.archivo = archivoEntries.map((file) => file._id);
-
-    await estudiante.save();
-
-    return this.estudianteModel
-      .findById(estudiante._id)
-      .populate([
-        'documento',
-        'periodo',
-        'grado',
-        'seccion',
-        'multimedia',
-        'user',
-      ])
-      .populate({ path: 'archivo', model: 'Archivo' });
+  if (files.length > 4) {
+    throw new BadRequestException('No se pueden subir más de 4 archivos');
   }
+
+  const estudiante = await this.estudianteModel
+    .findById(estudiante_id)
+    .populate('archivo');
+
+  if (!estudiante) {
+    throw new BadRequestException('Estudiante no encontrado');
+  }
+
+  // Eliminar archivos antiguos en Supabase si existen
+  if (estudiante.archivo && estudiante.archivo.length > 0) {
+    const oldArchivos = await this.archivoModel.find({
+      _id: { $in: estudiante.archivo },
+    });
+
+    for (const archivo of oldArchivos) {
+      if (archivo.url) {
+        await this.supabaseService.deleteFileFromFirebase(archivo.url);
+      }
+    }
+
+    await this.archivoModel.deleteMany({ _id: { $in: estudiante.archivo } });
+  }
+
+  // Subir nuevos archivos a Supabase
+  const uploadedFiles = (await this.supabaseService.uploadDocumentsToFirebase(
+    'Estudiante',
+    files,
+  )) as UploadedFile[];
+
+  const archivoEntries = await Promise.all(
+    uploadedFiles.map(async (file) => {
+      const createdArchivo = new this.archivoModel({
+        nombre: file.nombre,
+        url: file.url,
+        tamanio: file.tamanio,
+      });
+      return createdArchivo.save();
+    }),
+  );
+
+  estudiante.archivo = archivoEntries.map((file) => file._id);
+
+  await estudiante.save();
+
+  return this.estudianteModel
+    .findById(estudiante._id)
+    .populate([
+      'documento',
+      'periodo',
+      'grado',
+      'seccion',
+      'multimedia',
+      'user',
+    ])
+    .populate({ path: 'archivo', model: 'Archivo' });
+}
 
   async findByNumeroDocumento(
     numero_documento: string,
