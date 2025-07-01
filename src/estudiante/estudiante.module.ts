@@ -10,7 +10,6 @@ import { Seccion, SeccionSchema } from 'src/seccion/schema/seccion.schema';
 import { Multimedia, MultimediaSchema } from 'src/multimedia/schema/multimedia.schema';
 import { User, UserSchema } from 'src/user/schema/user.schema';
 import { Estudiante, EstudianteSchema } from './schema/estudiante.schema';
-import { FirebaseService } from 'src/storage/firebase.service';
 import { Archivo, ArchivoSchema } from 'src/archivo/schema/archivo.schema';
 import { Apoderado, ApoderadoSchema } from 'src/apoderado/schema/apoderado.schema';
 import { SupabaseService } from 'src/storage/supabase.service';
@@ -30,6 +29,6 @@ import { SupabaseService } from 'src/storage/supabase.service';
     ])
   ],
   controllers: [EstudianteController],
-  providers: [EstudianteService, FirebaseService, SupabaseService]
+  providers: [EstudianteService, SupabaseService]
 })
 export class EstudianteModule {}

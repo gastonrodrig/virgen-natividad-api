@@ -7,7 +7,7 @@ import { Documento, DocumentoSchema } from 'src/documento/schema/documento.schem
 import { Estudiante, EstudianteSchema } from 'src/estudiante/schema/estudiante.schema';
 import { Multimedia, MultimediaSchema } from 'src/multimedia/schema/multimedia.schema';
 import { User, UserSchema } from 'src/user/schema/user.schema';
-import { FirebaseService } from 'src/storage/firebase.service';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Module({
   imports: [
@@ -20,6 +20,6 @@ import { FirebaseService } from 'src/storage/firebase.service';
     ])
   ],
   controllers: [ApoderadoController],
-  providers: [ApoderadoService, FirebaseService]
+  providers: [ApoderadoService, SupabaseService]
 })
 export class ApoderadoModule {}

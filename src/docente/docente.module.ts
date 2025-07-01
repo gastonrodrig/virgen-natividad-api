@@ -6,7 +6,7 @@ import { Docente, DocenteSchema } from './schema/docente.schema';
 import { Documento, DocumentoSchema } from 'src/documento/schema/documento.schema';
 import { Multimedia, MultimediaSchema } from 'src/multimedia/schema/multimedia.schema';
 import { User, UserSchema } from 'src/user/schema/user.schema';
-import { FirebaseService } from 'src/storage/firebase.service';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Module({
   imports: [
@@ -17,7 +17,7 @@ import { FirebaseService } from 'src/storage/firebase.service';
       { name: User.name, schema: UserSchema }
     ])
   ],
-  providers: [DocenteService, FirebaseService],
+  providers: [DocenteService, SupabaseService],
   controllers: [DocenteController]
 })
 export class DocenteModule {}

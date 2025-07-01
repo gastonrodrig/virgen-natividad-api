@@ -9,7 +9,6 @@ import { PeriodoEscolar } from 'src/periodo-escolar/schema/periodo-escolar.schem
 import { Grado } from 'src/grado/schema/grado.schema';
 import { Seccion } from 'src/seccion/schema/seccion.schema';
 import { Multimedia } from 'src/multimedia/schema/multimedia.schema';
-// import { FirebaseService } from 'src/storage/firebase.service';
 import { SupabaseService } from 'src/storage/supabase.service';
 import { User } from 'src/user/schema/user.schema';
 import { UpdateEstadoEstudianteDto } from './dto/update-estado.dto';
@@ -38,7 +37,6 @@ export class EstudianteService {
     private readonly userModel: Model<User>,
     @InjectModel(Apoderado.name)
     private readonly apoderadoModel: Model<Apoderado>,
-    // private readonly firebaseService: FirebaseService,
     private readonly supabaseService: SupabaseService,
   ) {}
 

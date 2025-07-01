@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TareasController } from './tareas.controller';
 import { TareasService } from './tareas.service';
-import { FirebaseService } from 'src/storage/firebase.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Tareas, TareasSchema } from './schema/tareas.schema';
 import { Estudiante, EstudianteSchema } from 'src/estudiante/schema/estudiante.schema';
 import { Curso, CursoSchema } from 'src/curso/schema/curso.schema';
 import { ArchivoTareas, ArchivoTareasSchema } from 'src/archivoTareas/schema/archivoTareas.schema';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Module({
   imports: [
@@ -18,6 +18,6 @@ import { ArchivoTareas, ArchivoTareasSchema } from 'src/archivoTareas/schema/arc
     ])
   ],
   controllers: [TareasController],
-  providers: [TareasService, FirebaseService]
+  providers: [TareasService, SupabaseService]
 })
 export class TareasModule {}

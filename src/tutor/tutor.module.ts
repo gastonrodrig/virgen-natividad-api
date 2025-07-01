@@ -9,7 +9,7 @@ import { User, UserSchema } from 'src/user/schema/user.schema';
 import { Seccion, SeccionSchema } from 'src/seccion/schema/seccion.schema';
 import { Grado, GradoSchema } from 'src/grado/schema/grado.schema';
 import { PeriodoEscolar, PeriodoEscolarSchema } from 'src/periodo-escolar/schema/periodo-escolar.schema';
-import { FirebaseService } from 'src/storage/firebase.service';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Module({
   imports: [
@@ -23,7 +23,7 @@ import { FirebaseService } from 'src/storage/firebase.service';
       { name: PeriodoEscolar.name, schema: PeriodoEscolarSchema },
     ])
   ],
-  providers: [TutorService, FirebaseService],
+  providers: [TutorService, SupabaseService],
   controllers: [TutorController]
 })
 export class TutorModule {}

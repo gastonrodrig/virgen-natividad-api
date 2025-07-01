@@ -4,10 +4,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Curso } from 'src/curso/schema/curso.schema';
 import { ArchivoTareas } from 'src/archivoTareas/schema/archivoTareas.schema';
-import { FirebaseService } from '../storage/firebase.service';
 import { CreateTareasDto } from './dto/create-tareas.dto';
 import { Estudiante } from 'src/estudiante/schema/estudiante.schema';
 import { UpdateTareasDto } from './dto/update-tareas.dto';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Injectable()
 export class TareasService {
@@ -20,7 +20,7 @@ export class TareasService {
         private readonly cursoModel: Model<Curso>,
         @InjectModel(ArchivoTareas.name)
         private readonly archivoTareasModel: Model<ArchivoTareas>,
-        private readonly firebaseService: FirebaseService
+        private readonly supabaseService: SupabaseService
     ) {}
 
     async create(createTareasDto: CreateTareasDto, files: Express.Multer.File[]) {
@@ -38,7 +38,7 @@ export class TareasService {
             throw new BadRequestException('Curso no encontrado');
         }
     
-        const uploadedFiles = await this.firebaseService.uploadTareasToFirebase('Estudiante', files) as UploadedFile[];
+        const uploadedFiles = await this.supabaseService.uploadTareasToFirebase('Estudiante', files) as UploadedFile[];
     
         const archivoTareasEntries = await Promise.all(
             uploadedFiles.map(async (file) => {
@@ -116,14 +116,14 @@ export class TareasService {
             const oldArchivo = await this.archivoTareasModel.find({ _id: { $in: tareas.archivoTareas } });
             for (const archivo of oldArchivo) {
                 if (archivo.url) {
-                    await this.firebaseService.deleteFileFromFirebase(archivo.url);
+                    await this.supabaseService.deleteFileFromFirebase(archivo.url);
                 }
             }
 
             await this.archivoTareasModel.deleteMany({ _id: { $in: tareas.archivoTareas } });
         }
 
-        const uploadedFiles = await this.firebaseService.uploadTareasToFirebase('Estudiante', files) as UploadedFile[];
+        const uploadedFiles = await this.supabaseService.uploadTareasToFirebase('Estudiante', files) as UploadedFile[];
 
         const archivoTareasEntries = await Promise.all(
             uploadedFiles.map(async (file) => {

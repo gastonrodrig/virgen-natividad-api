@@ -5,10 +5,10 @@ import { Model, Types } from 'mongoose';
 import { Documento } from 'src/documento/schema/documento.schema';
 import { User } from 'src/user/schema/user.schema';
 import { Multimedia } from 'src/multimedia/schema/multimedia.schema';
-import { FirebaseService } from 'src/storage/firebase.service';
 import { Estudiante } from 'src/estudiante/schema/estudiante.schema';
 import { CreateApoderadoDto } from './dto/create-apoderado.dto';
 import { UpdateApoderadoDto } from './dto/update-apoderado.dto';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Injectable()
 export class ApoderadoService {
@@ -23,7 +23,7 @@ export class ApoderadoService {
     private readonly userModel: Model<User>,
     @InjectModel(Multimedia.name)
     private readonly multimediaModel: Model<Multimedia>,
-    private readonly firebaseService: FirebaseService
+    private readonly supabaseService: SupabaseService
   ) {}
 
   async create(createApoderadoDto: CreateApoderadoDto){
@@ -115,7 +115,7 @@ export class ApoderadoService {
     if (multimediaId) {
       const multimedia = await this.multimediaModel.findById(multimediaId).exec()
       if (multimedia) {
-        await this.firebaseService.deleteFileFromFirebase(multimedia.url);
+        await this.supabaseService.deleteFileFromFirebase(multimedia.url);
         await this.multimediaModel.findByIdAndDelete(multimediaId);
       }
     }
@@ -164,12 +164,12 @@ export class ApoderadoService {
     
     if (apoderado.multimedia && (apoderado.multimedia as unknown as Multimedia).url) {
       const multimedia = apoderado.multimedia as unknown as Multimedia;
-      await this.firebaseService.deleteFileFromFirebase(multimedia.url);
+      await this.supabaseService.deleteFileFromFirebase(multimedia.url);
       await this.multimediaModel.deleteOne({ _id: multimedia._id }).exec();
       apoderado.multimedia = null;
     }
 
-    const imageUrl = await this.firebaseService.uploadPfpToFirebase('Apoderado', file);
+    const imageUrl = await this.supabaseService.uploadPfpToFirebase('Apoderado', file);
 
     const multimedia = new this.multimediaModel({
       url: imageUrl,

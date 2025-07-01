@@ -8,9 +8,9 @@ import { User } from 'src/user/schema/user.schema';
 import { Seccion } from 'src/seccion/schema/seccion.schema';
 import { Grado } from 'src/grado/schema/grado.schema';
 import { PeriodoEscolar } from 'src/periodo-escolar/schema/periodo-escolar.schema';
-import { FirebaseService } from 'src/storage/firebase.service';
 import { CreateTutorDto } from './dto/create-tutor.dto';
 import { UpdateTutorDto } from './dto/update-tutor.dto';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Injectable()
 export class TutorService {
@@ -29,7 +29,7 @@ export class TutorService {
     private readonly gradoModel: Model<Grado>,
     @InjectModel(PeriodoEscolar.name)
     private readonly periodoModel: Model<PeriodoEscolar>,
-    private readonly firebaseService: FirebaseService
+    private readonly supabaseService: SupabaseService
   ) {}
 
   async create(createTutorDto: CreateTutorDto){
@@ -201,12 +201,12 @@ export class TutorService {
     
     if (tutor.multimedia && (tutor.multimedia as unknown as Multimedia).url) {
       const multimedia = tutor.multimedia as unknown as Multimedia;
-      await this.firebaseService.deleteFileFromFirebase(multimedia.url);
+      await this.supabaseService.deleteFileFromFirebase(multimedia.url);
       await this.multimediaModel.deleteOne({ _id: multimedia._id }).exec();
       tutor.multimedia = null;
     }
   
-    const imageUrl = await this.firebaseService.uploadPfpToFirebase('Tutor', file);
+    const imageUrl = await this.supabaseService.uploadPfpToFirebase('Tutor', file);
   
     const multimedia = new this.multimediaModel({
       url: imageUrl,
@@ -242,7 +242,7 @@ export class TutorService {
     if (multimediaId) {
       const multimedia = await this.multimediaModel.findById(multimediaId).exec()
       if (multimedia) {
-        await this.firebaseService.deleteFileFromFirebase(multimedia.url);
+        await this.supabaseService.deleteFileFromFirebase(multimedia.url);
         await this.multimediaModel.findByIdAndDelete(multimediaId);
       }
     }

@@ -5,9 +5,9 @@ import { Model, Types } from 'mongoose';
 import { Documento } from 'src/documento/schema/documento.schema';
 import { User } from 'src/user/schema/user.schema';
 import { Multimedia } from 'src/multimedia/schema/multimedia.schema';
-import { FirebaseService } from 'src/storage/firebase.service';
 import { CreateDocenteDto } from './dto/create-docente.dto';
 import { UpdateDocenteDto } from './dto/update-docente.dto';
+import { SupabaseService } from 'src/storage/supabase.service';
 
 @Injectable()
 export class DocenteService {
@@ -20,7 +20,7 @@ export class DocenteService {
     private readonly userModel: Model<User>,
     @InjectModel(Multimedia.name)
     private readonly multimediaModel: Model<Multimedia>,
-    private readonly firebaseService: FirebaseService
+    private readonly supabaseService: SupabaseService
   ) {}
 
   async create(createDocenteDto: CreateDocenteDto) {
@@ -139,12 +139,12 @@ export class DocenteService {
   
     if (docente.multimedia && (docente.multimedia as unknown as Multimedia).url) {
       const multimedia = docente.multimedia as unknown as Multimedia;
-      await this.firebaseService.deleteFileFromFirebase(multimedia.url);
+      await this.supabaseService.deleteFileFromFirebase(multimedia.url);
       await this.multimediaModel.deleteOne({ _id: multimedia._id }).exec();
       docente.multimedia = null;
     }
 
-    const imageUrl = await this.firebaseService.uploadPfpToFirebase('Docente', file);
+    const imageUrl = await this.supabaseService.uploadPfpToFirebase('Docente', file);
 
     const multimedia = new this.multimediaModel({
       url: imageUrl,
